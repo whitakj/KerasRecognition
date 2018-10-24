@@ -1,5 +1,6 @@
+import keras
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten, Dropout
+from keras.layers import Dense, Activation, Flatten, Dropout, Conv2D, MaxPooling2D
 import numpy as np
 from tqdm import tqdm
 import os
@@ -8,6 +9,9 @@ from random import shuffle
 
 train_data = 'TrainingImagesGS/'
 test_data = 'TestImages/'
+input_shape = (960,720, 1)
+num_category = 2
+
 
 def one_hot_label(img):
     label = img.split('.')[0]
@@ -46,16 +50,34 @@ tr_lbl_data = np.array([i[1] for i in training_images])
 # print(len(tr_lbl_data))
 
 
-
 model = Sequential()
+model.add(Conv2D(32, kernel_size=(16, 16), activation='relu', input_shape=input_shape))   # 32 - 3 X 3 filters with ReLU Activation Function
+    #Each filter convolves filter creates bitmap, makes 33, 3x3 size relu is better
+model.add(Conv2D(64, (8, 8), activation='relu'))   # 64 - 3 X 3 filters with ReLU Activation Function
 
-# model.add(Dropout(.25))
-model.add(Flatten())
-model.add(Dense(100, activation='sigmoid', input_shape=[960,720,1]))
-model.add(Dense(100, activation='relu'))
-model.add(Dense(2, activation='relu'))
+model.add(MaxPooling2D(pool_size=(4, 4)))   # Max Pool the bitmaps 4 bit squares at a time
+    #Takes important features from bitmap, takes max value from bitmap
+model.add(Flatten())                        # Flatten the dimensions
+    # turns bitmaps to 1D
+model.add(Dense(128, activation='relu'))    # Adding a dense layer at the end
+    # Normal dense layer of neurons (1D)
+model.add(Dense(num_category, activation='softmax'))   # Softmax activation function to get probability distributions,
+# Categorical Crossentropy loss function with Adadelta optimizer
+model.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.Adadelta(), metrics=['accuracy'])
+# categorical_crossentropy is something with logs
+# Training Hyperparameters
+batch_size = 100   # Mini batch sizes
+num_epoch = 10     # Number of epochs to train for
+model_log = model.fit(tr_img_data, tr_lbl_data, batch_size=batch_size, epochs=num_epoch, verbose=1)
 
-model.compile(loss='mse', optimizer='sgd', metrics=['accuracy'])
+'''
+score = model.evaluate(X_test, y_test, verbose=0)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
 
-model.fit(x=tr_img_data,y=tr_lbl_data, epochs=5, batch_size=5)
-model.summary()
+model_digit_json = model.to_json()
+with open("model_digit.json", "w") as json_file:
+    json_file.write(model_digit_json)
+model.save_weights("model_digit.h5")
+print("Saved model to disk")
+'''
