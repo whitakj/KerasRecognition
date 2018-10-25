@@ -22,7 +22,7 @@ def one_hot_label(img):
 
 def train_data_with_label():
     train_images = []
-    for i in tqdm(os.listdir(train_data)):
+    for i in os.listdir(train_data):
         path = os.path.join(train_data, i)
         img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
         if path != "TrainingImagesGS/.DS_Store":
