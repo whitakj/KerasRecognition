@@ -2,7 +2,6 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten, Dropout, Conv2D, MaxPooling2D
 import numpy as np
-from tqdm import tqdm
 import os
 import cv2
 from random import shuffle
